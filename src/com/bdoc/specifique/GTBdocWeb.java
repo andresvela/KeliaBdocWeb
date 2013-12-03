@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -185,7 +186,7 @@ public class GTBdocWeb extends javax.servlet.http.HttpServlet implements
 	protected void doGet(HttpServletRequest request,HttpServletResponse response) throws ServletException, IOException {
 
 		logger.info("Requête GET : Client = " + request.getRemoteAddr()	+ " - Requête : " + request.getQueryString());
-		response.getOutputStream().write("<html><head>		<meta http-equiv='Content-Type' content='text/html; charset=ISO-8859-1'><title>Formulaire de génération de document</title>	</head><body>	<form method='POST' action='GTBdocWeb'>			<input type='text' name='D' value='THELEM_HORSPRODUCTION'>domaine</input><br/>		<input type='text' name='M' value='I_MODELE_DEMONSTRATION'>modèle</input><br/>		<input type='text' name='F'>flux</input><br/>		<input type='submit' name='submit'>assembler</input><br/></form></body></html>".getBytes());
+		response.getOutputStream().write("<html><head>		<meta http-equiv='Content-Type' content='text/html; charset=ISO-8859-1'><title>Formulaire de génération de document</title>	</head><body>	<form method='POST' action='GTBdocWeb'>			<input type='text' name='mode' value='THELEM_HORSPRODUCTION'>domaine</input><br/>		<input type='text' name='keycode' value='I_MODELE_DEMONSTRATION'>modèle</input><br/>		<input type='text' name='data'>flux</input><br/>		<input type='submit' name='submit'>assembler</input><br/></form></body></html>".getBytes());
 
 	}
 
@@ -202,9 +203,9 @@ public class GTBdocWeb extends javax.servlet.http.HttpServlet implements
 		// Récupération des variable du POST
 		// [domain="",modele="",flux="" ...]
 
-		domaine = request.getParameter("D");
-		template = request.getParameter("M");
-		flux = request.getParameter("F").getBytes();
+		template  = request.getParameter("keycode");
+		 domaine= request.getParameter("mode");
+		flux = request.getParameter("data").getBytes();
 		
 
 		try{
@@ -245,9 +246,11 @@ public class GTBdocWeb extends javax.servlet.http.HttpServlet implements
 			// Si On n'est pas déjà connecté à BdocWeb alors on se connecte
 			BWConnect();
 			
+			UUID idOne = UUID.randomUUID();
+			 
 			// Sélection du modèle
 			JBTemplate ewtemplate = (JBTemplate) ewapp.getDomain(domaine).getTemplateByLogicalName(template);
-			this.ewGeneration = ewapp.setTemplateToGenerate(SESSION_ID,  ewtemplate);
+			this.ewGeneration = ewapp.setTemplateToGenerate(idOne.toString(),  ewtemplate);
 
 			// Préparation de l'envoi du flux de données par http + moteur PDF
 			

@@ -10,7 +10,7 @@
 		<init-param>
 			<description>Adresse du Serveur BdocWeb</description>
 			<param-name>BdocWeb_Serveur</param-name>
-			<param-value>100.100.100.61</param-value>
+			<param-value>100.100.100.77</param-value>
 		</init-param>
 		<init-param>
 			<description>Port d'écoute du serveur BdocWeb</description>

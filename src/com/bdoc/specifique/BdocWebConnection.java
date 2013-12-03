@@ -6,9 +6,16 @@ import org.apache.log4j.Logger;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.NoRouteToHostException;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.Iterator;
 
+import com.bdoc.specifique.BdocWebServiceInterfaceException;
 import com.bdoc.java.ediweb.api.ApplicationManager;
 import com.bdoc.java.ediweb.api.BDocDocument;
 import com.bdoc.java.ediweb.api.GenerationOptions;
@@ -22,6 +29,7 @@ import com.bdoc.java.ediweb.api.JBKeyword;
 import com.bdoc.java.ediweb.api.JBKeywordManager;
 import com.bdoc.java.ediweb.api.JBTemplate;
 import com.bdoc.java.ediweb.api.exception.BDocException;
+import com.bdoc.java.ediweb.api.exception.BDocWebException;
 
 
 /**
@@ -97,12 +105,22 @@ public class BdocWebConnection {
 		
 		JBConnection ewConnect = null;		
 		boolean ewConnected = false;
+					
+				
 		try {
+			
 			ewConnect = new JBConnection(serveur, port);
 			ewConnected = true;
-			logger.info("Connexion BDOCWeb : serveur="+serveur+":"+port+" - login = "+login);			
+			logger.info("Connexion BDOCWeb : serveur="+serveur+":"+port+" - login = "+login);	
+			//test BdocWeb Network Errors. AVELA.
+			this.testSocket();
 			ewSession = new JBApplication(ewConnect);
-		} catch (BDocException e) {
+		} 		
+		catch (BDocWebException e ){			
+			logger.error("BDocWebException : "+e.getMessage());
+			throw e;
+		}
+		catch (BDocException e) {
 			logger.error("BDocWebException : "+e.getMessage());
 			throw e;
 		} 
@@ -134,6 +152,45 @@ public class BdocWebConnection {
 		return ewSession;
 	}
 
+	public void testSocket() throws BdocWebServiceInterfaceException{
+		try {
+			
+			   Socket s = null;
+	           s = new Socket(serveur, port);
+	        } catch (UnknownHostException e) {
+	        	// check spelling of hostname
+	        	String errorMessage = e.getMessage() + " - ";	        	
+	        	throw new BdocWebServiceInterfaceException(4,BdocWebServiceInterfaceException.getErrorLibelle(4) + " " + errorMessage + " - check spelling of hostname") ;
+	           
+	        } catch (ConnectException e) {
+	        	
+	        	// connection refused - is server down? Try another port.
+	        	String errorMessage = e.getMessage() + " - ";
+	        	throw new BdocWebServiceInterfaceException(4,BdocWebServiceInterfaceException.getErrorLibelle(4) + " " + errorMessage + " - connection refused - is server down? Try another port.") ;
+	        	
+	           
+	        } catch (NoRouteToHostException e) {
+	        	// The connect attempt timed out.  Try connecting through a proxy
+	        	String errorMessage = e.getMessage() + " - ";
+	        	throw new BdocWebServiceInterfaceException(4,BdocWebServiceInterfaceException.getErrorLibelle(4) + " " + errorMessage + " - The connect attempt timed out.  Try connecting through a proxy") ;
+	        	
+	           
+	        } 
+			catch (SocketException e) {
+	        	// socket error occurred
+	        	String errorMessage = e.getMessage() + " - ";
+	        	throw new BdocWebServiceInterfaceException(4,BdocWebServiceInterfaceException.getErrorLibelle(4) + " " + errorMessage + " - Socket error occurred") ;
+	        	           
+	        }	
+			catch (IOException e) {
+	        	// another error occurred
+	        	String errorMessage = e.getMessage() + " - ";
+	        	throw new BdocWebServiceInterfaceException(4,BdocWebServiceInterfaceException.getErrorLibelle(4) + " " + errorMessage + " - nother error occurred") ;
+	        	           
+	        }	
+		
+	}
+	
 	public void destroy() {
 	}
 
